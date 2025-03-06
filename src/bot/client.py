@@ -1,5 +1,3 @@
-"""Discord bot client setup and core functionality."""
-
 import discord
 from discord.ext import commands
 import logging
@@ -25,6 +23,11 @@ def create_bot() -> commands.Bot:
     
     # Initialize bot with command prefix
     bot = commands.Bot(command_prefix='!', intents=intents)
+
+    @bot.event
+    async def on_ready():
+        logger.info(f'Logged in as {bot.user.name} ({bot.user.id})')
+        logger.info(f'Connected to {len(bot.guilds)} guild(s)')
     
     return bot
 

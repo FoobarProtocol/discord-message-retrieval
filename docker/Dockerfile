@@ -5,7 +5,7 @@ FROM python:3.10-alpine
 WORKDIR /app
 
 # Add labels
-LABEL maintainer="Your Name <your.email@example.com>"
+LABEL maintainer="James Edwards <librehash@gmail.com>"
 LABEL description="Discord RAG Bot - AI-powered message retrieval and analysis"
 LABEL version="0.1.0"
 
@@ -13,7 +13,7 @@ LABEL version="0.1.0"
 # - build-base: Needed for compiling some Python packages
 # - libpq-dev: Needed for PostgreSQL client
 # - libffi-dev: Needed for cryptography
-# - openssl-dev: Also needed for cryptography packages 
+# - openssl-dev: Also needed for cryptography packages
 RUN apk add --no-cache \
     build-base \
     postgresql-dev \

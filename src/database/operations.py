@@ -1,5 +1,3 @@
-"""Database operations for storing and retrieving Discord messages."""
-
 import discord
 import asyncpg
 import logging
@@ -403,3 +401,20 @@ async def get_messages_for_rag(
     except Exception as e:
         logger.error(f"Error retrieving messages for RAG: {str(e)}")
         return []
+
+async def store_message(message_id: int, content: str, author_id: int, channel_id: int) -> None:
+    """
+    Store a message in the database.
+
+    Args:
+        message_id (int): ID of the message
+        content (str): Content of the message
+        author_id (int): ID of the author
+        channel_id (int): ID of the channel
+    """
+    query = """
+    INSERT INTO messages (message_id, content, author_id, channel_id)
+    VALUES ($1, $2, $3, $4)
+    """
+    await execute_query(query, message_id, content, author_id, channel_id)
+

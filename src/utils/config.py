@@ -42,7 +42,7 @@ DEFAULT_CONFIG = {
     'logging': {
         'level': 'INFO',
         'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        'file': 'discord_rag_bot.log',
+        'file': '/app/logs/discord_rag_bot.log',
         'max_file_size': 10 * 1024 * 1024,  # 10 MB
         'backup_count': 5,
     },

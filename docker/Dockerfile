@@ -5,7 +5,7 @@ FROM python:3.10-alpine
 WORKDIR /app
 
 # Add labels
-LABEL maintainer="James Edwards <librehash@gmail.com>"
+LABEL maintainer="Your Name <your.email@example.com>"
 LABEL description="Discord RAG Bot - AI-powered message retrieval and analysis"
 LABEL version="0.1.0"
 
@@ -13,7 +13,7 @@ LABEL version="0.1.0"
 # - build-base: Needed for compiling some Python packages
 # - libpq-dev: Needed for PostgreSQL client
 # - libffi-dev: Needed for cryptography
-# - openssl-dev: Also needed for cryptography packages
+# - openssl-dev: Also needed for cryptography packages 
 RUN apk add --no-cache \
     build-base \
     postgresql-dev \
@@ -41,8 +41,10 @@ COPY --chown=botuser:botuser . .
 RUN mkdir -p /app/logs && \
     chown -R botuser:botuser /app/logs
 
+RUN touch /app/logs/discord_rag_bot.log
+RUN chmod 777 /app/logs/discord_rag_bot.log
 # Switch to non-root user
-USER botuser
+# USER botuser
 
 # Create a healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \

@@ -1,0 +1,16 @@
+# Discord API
+discord.py>=2.1.0
+
+# Database
+asyncpg>=0.27.0
+
+# Configuration and environment
+python-dotenv>=1.0.0
+pydantic>=1.10.0
+
+# Utilities
+aiohttp>=3.8.0
+asyncio>=3.4.3
+
+# Logging and monitoring
+colorlog>=6.7.0

@@ -346,3 +346,60 @@ async def get_database_stats() -> Dict[str, Any]:
             'attachment_count': 0
         }
 
+async def get_messages_for_rag(
+    guild_id: int,
+    query: str,
+    max_results: int = 20,
+    max_days: Optional[int] = 30
+) -> List[Dict[str, Any]]:
+    """
+    Get messages for RAG processing based on query relevance.
+    
+    Args:
+        guild_id (int): The Discord server ID
+        query (str): The user's query text
+        max_results (int): Maximum number of messages to retrieve
+        max_days (int, optional): Only consider messages from the last X days
+        
+    Returns:
+        List[Dict[str, Any]]: List of relevant message records with ranking
+    """
+    try:
+        # Create a date cutoff if max_days is specified
+        date_clause = ""
+        params = [guild_id]
+        
+        if max_days is not None:
+            date_cutoff = datetime.datetime.now() - datetime.timedelta(days=max_days)
+            date_clause = "AND timestamp > $2"
+            params.append(date_cutoff)
+        
+        # Convert search text to TSQuery format (add:ed for fuzzy matching)
+        search_terms = ' | '.join(query.split())
+        params.append(search_terms)
+        params.append(max_results)
+        
+        # Build query using PostgreSQL's full-text search capabilities with ranking
+        query_sql = f"""
+        SELECT m.*, 
+               ts_rank_cd(to_tsvector('english', m.content), to_tsquery('english', $3)) AS rank
+        FROM messages m
+        WHERE m.guild_id = $1
+        {date_clause}
+        AND to_tsvector('english', m.content) @@ to_tsquery('english', $3)
+        ORDER BY rank DESC
+        LIMIT ${len(params)}
+        """
+        
+        # Execute query and return results
+        results = await execute_query(query_sql, *params, fetch=True)
+        
+        # Convert results to dictionaries
+        messages = []
+        for record in results:
+            messages.append(dict(record))
+        
+        return messages
+    except Exception as e:
+        logger.error(f"Error retrieving messages for RAG: {str(e)}")
+        return []

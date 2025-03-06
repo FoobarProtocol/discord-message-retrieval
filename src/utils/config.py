@@ -1,5 +1,3 @@
-"""Configuration management for the Discord RAG bot."""
-
 import os
 import json
 import logging
@@ -36,6 +34,8 @@ DEFAULT_CONFIG = {
         'max_context_messages': 20,
         'max_context_days': 30,  # How far back to look for context by default
         'search_similarity_threshold': 0.7,
+        'max_context_length': 12000,
+        'conversation_history_limit': 25
     },
     
     # Logging settings
@@ -49,10 +49,10 @@ DEFAULT_CONFIG = {
     
     # AI model settings
     'ai': {
-        'model': 'gpt-3.5-turbo',
+        'model': 'o3-mini',
         'api_key_env_var': 'OPENAI_API_KEY',
         'temperature': 0.7,
-        'max_tokens': 1000,
+        'max_tokens': 16384,
     }
 }
 

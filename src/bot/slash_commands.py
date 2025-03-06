@@ -5,11 +5,13 @@ import logging
 from typing import Optional
 import asyncio
 
-from ..utils.config import get_config
-from ..rag.retriever import MessageRetriever
-from ..rag.processor import ContextProcessor
-from ..rag.generator import ResponseGenerator
-from ..rag.conversation import ConversationManager
+from src.utils.config import get_config
+from src.rag.retriever import MessageRetriever
+from src.rag.processor import ContextProcessor
+from src.rag.generator import ResponseGenerator
+# Import the ConversationManager from user_commands where it's actually defined
+from src.bot.user_commands import ConversationManager
+
 
 logger = logging.getLogger('discord_bot.slash_commands')
 
@@ -28,7 +30,7 @@ def register_slash_commands(bot: commands.Bot) -> None:
     config = get_config()
     rag_config = config.get('rag', {})
     ai_config = config.get('ai', {})
-    
+
     # Initialize components
     retriever = MessageRetriever(
         max_results=rag_config.get('max_context_messages', 20),
@@ -39,41 +41,54 @@ def register_slash_commands(bot: commands.Bot) -> None:
         model=ai_config.get('model', 'gpt-3.5-turbo')
     )
     conversation_manager = ConversationManager()
-    
+
     @bot.tree.command(name="ask", description="Ask a question and get an answer based on server message history")
     async def ask_slash_command(interaction: discord.Interaction, question: str):
         """Ask a question using server context."""
         await interaction.response.defer(thinking=True)
-        
+
         try:
             user_id = interaction.user.id
             guild_id = interaction.guild.id if interaction.guild else None
-            
+
             # Get conversation history
-            conversation = conversation_manager.get_conversation(user_id)
-            
+            conversation_manager.add_message(user_id, question)
+
+
             # Add user message to conversation
-            conversation.add_user_message(question)
-            
+           # conversation.add_user_message(question)
+
             # Get relevant messages using RAG
             messages = await retriever.retrieve(guild_id, question)
-            
+
             # Process messages into a context
             context = processor.process(messages, question)
-            
+
+            # Create the full prompt
+            prompt = processor.create_prompt_with_context(question, context)
+
+            # Add conversation history if available
+            conv_history = conversation_manager.get_history(user_id)
+            if conv_history:
+                prompt += f"\n\nRecent conversation history:\n{conv_history}"
+
             # Generate a response
             response = await generator.generate(question, context, conversation)
-            
+
+            # Add assistant response to conversation history
+            conversation_manager.add_message(user_id, response, is_bot=True)
+
+
             # Add assistant response to conversation
-            conversation.add_assistant_message(response)
-            
+            # conversation.add_assistant_message(response)
+
             # Send the response
             await interaction.followup.send(response)
-            
+
         except Exception as e:
             logger.error(f"Error processing ask command: {str(e)}")
             await interaction.followup.send(f"Sorry, I encountered an error while processing your question. Please try again later.")
-    
+
     @bot.tree.command(name="help", description="Show the bot's help information")
     async def help_slash_command(interaction: discord.Interaction):
         """Display help information."""
@@ -82,17 +97,17 @@ def register_slash_commands(bot: commands.Bot) -> None:
             description="Here are the commands you can use:",
             color=discord.Color.blue()
         )
-        
+
         embed.add_field(
             name="/ask [question]",
             value="Ask a question and get an answer based on server message history",
             inline=False
         )
-        
+
         embed.add_field(
             name="/help",
             value="Show this help message",
             inline=False
         )
-        
+
         await interaction.response.send_message(embed=embed)

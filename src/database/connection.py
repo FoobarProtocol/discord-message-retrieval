@@ -1,5 +1,3 @@
-"""Database connection management for PostgreSQL."""
-
 import asyncpg
 import os
 import logging
@@ -32,7 +30,7 @@ async def get_db_pool() -> asyncpg.Pool:
     """
     global _pool
 
-    if _pool is not None and not _pool.is_closed():
+    if _pool is not None and not _pool._closed:
         return _pool
 
     # Get database configuration from environment variables or use defaults
@@ -87,7 +85,7 @@ async def get_db_pool() -> asyncpg.Pool:
         raise
 
 async def execute_query(query: str, *args, fetch: bool = False,
-                      fetch_one: bool = False, fetch_val: bool = False) -> Any:
+                        fetch_one: bool = False, fetch_val: bool = False) -> Any:
     """
     Execute an SQL query on the database.
 
@@ -105,14 +103,23 @@ async def execute_query(query: str, *args, fetch: bool = False,
 
     try:
         async with pool.acquire() as conn:
+            logger.info(f"Executing query: {query} with args: {args}")
             if fetch:
-                return await conn.fetch(query, *args)
+                result = await conn.fetch(query, *args)
+                logger.info(f"Query result: {result}")
+                return result
             elif fetch_one:
-                return await conn.fetchrow(query, *args)
+                result = await conn.fetchrow(query, *args)
+                logger.info(f"Query result: {result}")
+                return result
             elif fetch_val:
-                return await conn.fetchval(query, *args)
+                result = await conn.fetchval(query, *args)
+                logger.info(f"Query result: {result}")
+                return result
             else:
-                return await conn.execute(query, *args)
+                result = await conn.execute(query, *args)
+                logger.info(f"Query executed successfully")
+                return result
     except asyncpg.PostgresError as e:
         logger.error(f"Database query error: {str(e)}")
         logger.error(f"Query: {query}")

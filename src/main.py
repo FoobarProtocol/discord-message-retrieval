@@ -50,7 +50,12 @@ def main():
         # Register commands and events
         register_commands(bot)
         register_events(bot)
+        register_slash_commands(bot)  
         
+        @bot.event
+        async def on_connect():
+            await setup_slash_commands(bot)
+                  
         # Get bot token from environment
         token = os.getenv('DISCORD_BOT_TOKEN')
         if not token:

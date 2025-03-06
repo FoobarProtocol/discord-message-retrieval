@@ -33,8 +33,9 @@ coverage.xml
 *.cover
 
 # Logs
-logs/
-*.log
+/log
+/Logs
+.log
 
 # Docker
 docker/data/
